@@ -15,6 +15,13 @@ set(GAME_SOURCES
 
 add_executable(${PROJECT_NAME} ${GAME_SOURCES})
 
+if(WIN32)
+    set_target_properties(
+        ${PROJECT_NAME} PROPERTIES
+        WIN32_EXECUTABLE $<$<CONFIG:Release>:ON>
+    )
+endif()
+
 target_link_libraries(${PROJECT_NAME} PRIVATE smol-engine)
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/src)
