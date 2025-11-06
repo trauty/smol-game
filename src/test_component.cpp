@@ -1,16 +1,14 @@
 #include "test_component.h"
 
-#include <smol/log.h>
 #include <smol/asset/asset.h>
 #include <smol/asset/asset_manager.h>
-#include <smol/asset/texture.h>
-#include <smol/asset/shader.h>
 #include <smol/asset/mesh.h>
-
-#include <smol/math_util.h>
-
-#include <smol/core/gameobject.h>
+#include <smol/asset/shader.h>
+#include <smol/asset/texture.h>
 #include <smol/components/transform.h>
+#include <smol/core/gameobject.h>
+#include <smol/log.h>
+#include <smol/math_util.h>
 
 using namespace smol::asset_manager;
 using namespace smol::asset;
@@ -45,7 +43,7 @@ namespace smol_game
 
     void test_component_t::update(f64 delta_time)
     {
-        vec3_t rot = { 30.0f * (f32)delta_time, 20.0f * (f32)delta_time, 40.0f * (f32)delta_time };
+        vec3_t rot = {30.0f * (f32)delta_time, 20.0f * (f32)delta_time, 40.0f * (f32)delta_time};
         get_gameobject()->get_transform()->rotate_local(rot);
     }
-}
+} // namespace smol_game
