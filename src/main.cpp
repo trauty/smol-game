@@ -1,6 +1,5 @@
 #include "test_component.h"
 
-#include <iostream>
 #include <smol/asset/asset.h>
 #include <smol/asset/asset_manager.h>
 #include <smol/asset/mesh.h>
@@ -34,10 +33,10 @@ int main()
     asset_handle_t shader_handle = smol::asset_manager::load_sync<shader_asset_t>("assets/shaders/unlit.vert|assets/shaders/unlit.frag");
     asset_ptr_t<shader_asset_t> shader_prog = smol::asset_manager::get<shader_asset_t>(shader_handle);
 
-    asset_handle_t model_handle = smol::asset_manager::load_sync<mesh_asset_t>("assets/models/monkee.glb");
+    asset_handle_t model_handle = smol::asset_manager::load_sync<mesh_asset_t>("assets/models/croissant.glb");
     asset_ptr_t<mesh_asset_t> model = smol::asset_manager::get<mesh_asset_t>(model_handle);
 
-    asset_handle_t tex_handle = smol::asset_manager::load_sync<texture_asset_t>("assets/textures/rock_albedo.png", texture_asset_args_t {texture_type_e::ALBEDO});
+    asset_handle_t tex_handle = smol::asset_manager::load_sync<texture_asset_t>("assets/textures/pastry.png", texture_asset_args_t {texture_type_e::ALBEDO});
     asset_ptr_t<texture_asset_t> rock_tex = smol::asset_manager::get<texture_asset_t>(tex_handle);
 
     std::shared_ptr<smol::rendering::spatial_material_t> cube_mat = std::make_shared<smol::rendering::spatial_material_t>(shader_prog);
@@ -48,7 +47,7 @@ int main()
     smol::math::vec3_t new_pos {0.0f, 0.0f, 5.0f};
     cube_obj->get_transform()->set_local_position(new_pos);
 
-    smol::math::vec3_t new_scale {1.0f, 1.0f, 1.0f};
+    smol::math::vec3_t new_scale {20.0f, 20.0f, 20.0f};
     cube_obj->get_transform()->set_local_scale(new_scale);
 
     smol::engine::run();

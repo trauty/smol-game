@@ -25,11 +25,3 @@ endif()
 target_link_libraries(${PROJECT_NAME} PRIVATE smol-engine)
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/src)
-
-function(link_compile_commands)
-    execute_process(
-        COMMAND ${CMAKE_COMMAND} -E create_symlink "${CMAKE_BINARY_DIR}/compile_commands.json" "${CMAKE_SOURCE_DIR}/compile_commands.json"
-    )
-endfunction()
-
-link_compile_commands()

@@ -1,5 +1,9 @@
 #include "test_component.h"
 
+#include "smol/defines.h"
+#include "smol/time_util.h"
+
+#include <cmath>
 #include <smol/asset/asset.h>
 #include <smol/asset/asset_manager.h>
 #include <smol/asset/mesh.h>
@@ -45,5 +49,8 @@ namespace smol_game
     {
         vec3_t rot = {30.0f * (f32)delta_time, 20.0f * (f32)delta_time, 40.0f * (f32)delta_time};
         get_gameobject()->get_transform()->rotate_local(rot);
+
+        vec3_t scale = {30.0f * std::abs(std::sin((f32)smol::time::get_time_in_seconds())), 30.0f * std::abs(std::sin((f32)smol::time::get_time_in_seconds())), 30.0f * std::abs(std::sin((f32)smol::time::get_time_in_seconds()))};
+        get_gameobject()->get_transform()->set_local_scale(scale);
     }
 } // namespace smol_game
