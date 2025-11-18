@@ -1,0 +1,4 @@
+[submodule "smol-engine"]
+	path = smol-engine
+	url = git@github.com:trauty/smol-engine.git
+	branch = main
