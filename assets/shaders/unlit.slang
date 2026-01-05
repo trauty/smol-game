@@ -1,4 +1,4 @@
-cbuffer smol_camera
+cbuffer smol_camera : register(b0)
 {
     float4x4 smol_view;
     float4x4 smol_projection;
@@ -8,10 +8,17 @@ cbuffer smol_camera
     float    _pad1;
 };
 
+cbuffer smol_material : register(b1)
+{
+    float4 smol_base_color; 
+};
 
-float4x4 smol_model_mat;
-float4   smol_base_color;
+cbuffer smol_object : register(b2)
+{
+    float4x4 smol_model_mat;
+};
 
+[[vk::binding(0)]]
 Sampler2D smol_albedo_tex;
 
 struct VSInput

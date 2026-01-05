@@ -1,6 +1,12 @@
 cmake_minimum_required(VERSION 3.26)
 project(smol-game LANGUAGES CXX)
 
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  set(LINUX true)
+endif()
+
+include(smol-engine/cmake/policies.cmake)
+
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 set(CMAKE_CXX_STANDARD 20)
@@ -21,6 +27,8 @@ if(WIN32)
         WIN32_EXECUTABLE $<$<CONFIG:Release>:ON>
     )
 endif()
+
+smol_set_rpath_policy(${PROJECT_NAME})
 
 target_link_libraries(${PROJECT_NAME} PRIVATE smol-engine)
 
