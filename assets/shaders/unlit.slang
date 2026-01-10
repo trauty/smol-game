@@ -1,56 +1,39 @@
-cbuffer smol_camera : register(b0)
+import "smol_globals";
+
+[[vk::binding(0, 1)]] Texture2D albedo_tex;
+[[vk::binding(1, 1)]] SamplerState albedo_sampler;
+
+struct VertexIn
 {
-    float4x4 smol_view;
-    float4x4 smol_projection;
-    float3   smol_camera_position;
-    float    _pad0;
-    float3   smol_camera_direction;
-    float    _pad1;
+    [[vk::location(0)]] float3 pos : POSITION;
+    [[vk::location(1)]] float3 normal : NORMAL;
+    [[vk::location(2)]] float2 uv : TEXCOORD0;
 };
 
-cbuffer smol_material : register(b1)
+struct VertexOut
 {
-    float4 smol_base_color; 
-};
-
-cbuffer smol_object : register(b2)
-{
-    float4x4 smol_model_mat;
-};
-
-[[vk::binding(0)]]
-Sampler2D smol_albedo_tex;
-
-struct VSInput
-{
-    [[vk::location(0)]] float3 position : POSITION;
-    [[vk::location(1)]] float3 normal   : NORMAL;
-    [[vk::location(2)]] float2 uv       : TEXCOORD0;
-};
-
-struct VSOutput
-{
-    float4 position : SV_Position;
-    float2 uv       : TEXCOORD0;
+    float4 pos : SV_Position;
+    float3 normal : NORMAL;
+    float2 uv : TEXCOORD0;
 };
 
 [shader("vertex")]
-VSOutput vertexMain(VSInput input)
+VertexOut vertexMain(VertexIn input)
 {
-    VSOutput output;
-    
-    output.uv = input.uv;
-    
-    float4 worldPos = mul(smol_model_mat, float4(input.position, 1.0));
-    float4 viewPos  = mul(smol_view, worldPos);
-    
-    output.position = mul(smol_projection, viewPos);
+    VertexOut out;
 
-    return output;
+    float4 world_pos = mul(smol_push_constants.model_matrix, float4(input.pos, 1.0));
+
+    out.pos = mul(smol.projection, mul(smol.view, world_pos));
+    out.normal = mul((float3x3)smol_push_constants.model_matrix, input.normal);
+    out.uv = input.uv;
+
+    return out;
 }
 
 [shader("fragment")]
-float4 fragmentMain(VSOutput input) : SV_Target
+float4 fragmentMain(VertexOut input) : SV_Target
 {
-    return smol_albedo_tex.Sample(input.uv) * smol_base_color;
+    float4 color = albedo_tex.Sample(albedo_sampler, input.uv);
+    return color;
 }
