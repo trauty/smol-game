@@ -1,14 +1,15 @@
 set_project("smol-game")
 set_version("0.0.1")
 
-add_rules("mode.debug", "mode.release")
+add_rules("mode.debug", "mode.release", "mode.releasedbg")
 
 add_rules("plugin.compile_commands.autoupdate", {outputdir = "."})
 
-add_requires("zig 0.15.2", {kind = "toolchain"})
-
-set_toolchains("@zig")
 set_languages("cxx20")
+
+if is_mode("debug") then
+    set_policy("build.sanitizer.address", true)
+end 
 
 includes("smol-engine")
 
@@ -25,6 +26,11 @@ target("smol-game")
         "-mlzcnt",
         "-mpopcnt"
     )
+
+    if is_mode("release") then
+        set_optimize("fastest")
+        set_strip("all")
+    end
     
     add_deps("smol-engine")
 
