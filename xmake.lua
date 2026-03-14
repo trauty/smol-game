@@ -16,16 +16,7 @@ includes("smol-engine")
 target("smol-game")
     set_kind("binary")
     set_languages("cxx20")
-    add_cxflags(
-        "-mavx",
-        "-mavx2",
-        "-mfma",
-        "-mbmi",
-        "-mbmi2",
-        "-mf16c",
-        "-mlzcnt",
-        "-mpopcnt"
-    )
+    add_cxflags("-march=x86-64-v3")
 
     if is_mode("release") then
         set_optimize("fastest")
