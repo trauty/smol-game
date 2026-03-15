@@ -14,7 +14,7 @@ end
 includes("smol-engine")
 
 target("smol-game")
-    set_kind("binary")
+    set_kind("shared")
     set_languages("cxx20")
     add_cxflags("-march=x86-64-v3")
 
