@@ -49,7 +49,7 @@ extern "C" void smol_game_init(smol::world_t* world)
     smol::engine::get_active_world().register_update_system(
         [](ecs::registry_t& reg)
         {
-            vec3_t rot = {0.8f * (f32)time::time, 0.7f * (f32)time::time, 0.9f * (f32)time::time};
+            vec3_t rot = {0.8f * (f32)time::get_time(), 0.7f * (f32)time::get_time(), 0.9f * (f32)time::get_time()};
             /*vec3_t scale = {30.0f * std::abs(std::sin((f32)time::time)),
                             30.0f * std::abs(std::sin((f32)time::time)),
                             30.0f * std::abs(std::sin((f32)time::time))};*/

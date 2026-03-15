@@ -1,11 +1,22 @@
 set_project("smol-game")
 set_version("0.0.1")
 
-add_rules("mode.debug", "mode.release", "mode.releasedbg")
+set_config("game_name", "smol-game")
+set_config("game_lib_name", "smol-game-logic")
 
-add_rules("plugin.compile_commands.autoupdate", {outputdir = "."})
+if is_plat("linux") then 
+    set_toolchains("clang")
+    add_ldflags("-static-libstdc++", "-static-libgcc")
+    add_cxflags("-fno-rtti", {force = true})
+elseif is_plat("windows") then 
+    set_toolchains("clang-cl")
+    set_runtimes("MT")
+    add_cxflags("/GR-", {force = true})
+end
 
 set_languages("cxx20")
+add_rules("mode.debug", "mode.release", "mode.releasedbg")
+add_rules("plugin.compile_commands.autoupdate", {outputdir = "."})
 
 if is_mode("debug") then
     set_policy("build.sanitizer.address", true)
@@ -15,7 +26,7 @@ includes("smol-engine")
 
 target("smol-game")
     set_kind("shared")
-    set_languages("cxx20")
+    set_basename(get_config("game_lib_name"))
     add_cxflags("-march=x86-64-v3")
 
     if is_mode("release") then
@@ -23,18 +34,11 @@ target("smol-game")
         set_strip("all")
     end
     
-    add_deps("smol-engine")
+    add_deps("smol-interface")
+    add_deps("smol-engine", {inherit = false})
 
     add_files("src/**.cpp")
     add_includedirs("src")
-
-    if is_plat("windows") then
-        if is_mode("release") then
-            add_ldflags("-mwindows", {force = true})
-        end
-    elseif is_plat("linux") then 
-        add_ldflags("-Xlinker --allow-shlib-undefined")
-    end
 
     after_build(function (target)
         local dest_dir = target:targetdir()
