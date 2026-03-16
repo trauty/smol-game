@@ -6,12 +6,15 @@ set_config("game_lib_name", "smol-game-logic")
 
 if is_plat("linux") then 
     set_toolchains("clang")
-    add_ldflags("-static-libstdc++", "-static-libgcc")
     add_cxflags("-fno-rtti", {force = true})
-elseif is_plat("windows") then 
+elseif is_plat("windows") then
     set_toolchains("clang-cl")
-    set_runtimes("MT")
+    set_toolset("ld", "lld-link")
+    set_toolset("sh", "lld-link")
+    set_toolset("ar", "llvm-ar")
+
     add_cxflags("/GR-", {force = true})
+    set_runtimes("MD")
 end
 
 set_languages("cxx20")
@@ -29,13 +32,15 @@ target("smol-game")
     set_basename(get_config("game_lib_name"))
     add_cxflags("-march=x86-64-v3")
 
+    add_defines("SMOL_EXPORT")
+
     if is_mode("release") then
         set_optimize("fastest")
         set_strip("all")
     end
     
     add_deps("smol-interface")
-    add_deps("smol-engine", {inherit = false})
+    add_deps("smol-engine")
 
     add_files("src/**.cpp")
     add_includedirs("src")
