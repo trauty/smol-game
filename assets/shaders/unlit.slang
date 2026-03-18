@@ -1,5 +1,6 @@
 import smol_globals;
 
+[MaterialReflection]
 struct MaterialData
 {
     float4 color;
@@ -34,14 +35,24 @@ VertexOut vertexMain(uint vertex_id: SV_VertexID, uint draw_id: SV_DrawIndex)
     return out;
 }
 
-[shader("fragment")]
-float4 fragmentMain(VertexOut input) : SV_Target
+[RenderConfig("MainForwardPass", "Opaque", true, true)]
+struct FragmentOut
 {
+    [RenderTarget("RGBA16_FLOAT")]
+    float4 color : SV_Target0;
+};
+
+[shader("fragment")]
+FragmentOut fragmentMain(VertexOut input) : SV_Target
+{
+    FragmentOut out;
+
     MaterialData mat = getMaterial<MaterialData>(pc.material_buffer_id, input.material_offset);
 
     Texture2D albedo_tex = global_textures[mat.albedo_tex];
     SamplerState sampler = global_samplers[mat.albedo_sampler];
 
-    float4 color = albedo_tex.Sample(sampler, input.uv);
-    return color * mat.color;
+    out.color = albedo_tex.Sample(sampler, input.uv);
+    out.color *= mat.color;
+    return out;
 }

@@ -1,3 +1,15 @@
+#include "smol/asset.h"
+#include "smol/assets/shader.h"
+#include "smol/ecs_fwd.h"
+#include "smol/hash.h"
+#include "smol/rendering/graphics_state.h"
+#include "smol/rendering/renderer.h"
+#include "smol/rendering/renderer_resources.h"
+#include "smol/rendering/renderer_types.h"
+#include "smol/rendering/rendergraph.h"
+#include "smol/rendering/vulkan.h"
+#include "vulkan/vulkan_core.h"
+
 #include <smol/assets/material.h>
 #include <smol/assets/mesh.h>
 #include <smol/assets/texture.h>
@@ -21,13 +33,41 @@ extern "C"
 {
     SMOL_API void smol_game_init(smol::world_t* world)
     {
+        graphics_state_t& graphics_state = world->registry.ctx().emplace<graphics_state_t>();
+
         asset_t<mesh_t> croissant_mesh = smol::load_asset_sync<mesh_t>("assets/models/croissant.glb");
         asset_t<mesh_t> monkee_mesh = smol::load_asset_sync<mesh_t>("assets/models/monkee.glb");
         asset_t<texture_t> croissant_tex = smol::load_asset_sync<texture_t>("assets/textures/low_quality_pastry.png");
-        asset_t<shader_t> unlit_shader = smol::load_asset_sync<shader_t>("assets/shaders/unlit.slang");
-        asset_t<material_t> croissant_material = smol::load_asset_sync<material_t>("cube_material", unlit_shader);
-
         asset_t<texture_t> rock_tex = smol::load_asset_sync<texture_t>("assets/textures/rock_albedo.png");
+        asset_t<shader_t> unlit_shader = smol::load_asset_sync<shader_t>("assets/shaders/unlit.slang");
+
+        asset_t<shader_t> pp_shader = smol::load_asset_sync<shader_t>("assets/shaders/post_process.slang");
+        asset_t<material_t> pp_material = smol::load_asset_sync<material_t>("pp_material", pp_shader);
+
+        graphics_state.add_material(smol::hash_string("PostProcessing"), pp_material);
+
+        renderer::register_renderer_feature(
+            [](renderer::rendergraph_t& graph, ecs::registry_t& reg)
+            {
+                renderer::rg_resource_id scene_color = graph.get_resource("SceneColor");
+                renderer::rg_resource_id scene_depth = graph.get_resource("SceneDepth");
+                renderer::rg_resource_id swapchain = graph.get_resource("Swapchain");
+
+                renderer::add_mesh_pass(graph, "MainForward", "MainForwardPass", {}, {scene_color}, scene_depth);
+
+                graphics_state_t& graphics_state = reg.ctx().get<graphics_state_t>();
+                asset_t<material_t> pp_mat = graphics_state.get_material(smol::hash_string("PostProcessing"));
+
+                if (pp_mat && pp_mat->shader && pp_mat->shader->ready())
+                {
+                    renderer::add_fullscreen_pass(graph, "PostProcess", pp_mat, {scene_color}, {swapchain},
+                                                  [](renderer::rendergraph_t& g, material_t& mat)
+                                                  {
+                                                      u32_t color_id = g.get_bindless_id(g.get_resource("SceneColor"));
+                                                      mat.set_property("scene_color_tex", color_id);
+                                                  });
+                }
+            });
 
         std::vector<asset_t<material_t>> material_palette;
 
@@ -99,5 +139,6 @@ extern "C"
     }
 
     SMOL_API void smol_game_update(smol::world_t* world) {}
+
     SMOL_API void smol_game_shutdown(smol::world_t* world) {}
 }

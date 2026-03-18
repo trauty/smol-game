@@ -39,6 +39,7 @@ public struct PushConstants
     public uint global_buffer_id;
     public uint object_buffer_id;
     public uint material_buffer_id;
+    public uint custom_data;
 };
 
 [[vk::push_constant]]
@@ -71,3 +72,23 @@ public T getMaterial<T>(uint material_buffer_id, uint byte_offset)
 {
     return global_buffers[material_buffer_id].Load<T>(byte_offset);
 }
+
+[__AttributeUsage(_AttributeTargets.Struct)]
+public struct RenderConfigAttribute
+{
+    public string pass_name;
+    public string blend_mode; // Opaque, Alpha, Additive
+    public bool depth_write;
+    public bool depth_test;
+};
+
+[__AttributeUsage(_AttributeTargets.Var)]
+public struct RenderTargetAttribute
+{
+    public string format_alias; // Swapchain, RGBA8_SRGB, RGBA8_UNORM, RGBA16_FLOAT, RG16_FLOAT, R8_UNORM
+};
+
+[__AttributeUsage(_AttributeTargets.Struct)]
+public struct MaterialReflectionAttribute
+{
+};
