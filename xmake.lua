@@ -47,6 +47,11 @@ target("smol-game")
 
     after_build(function (target)
         local dest_dir = target:targetdir()
-        os.trycp("assets", dest_dir)
+
+        if os.isdir("assets") then
+            os.cp("assets/*", path.join(dest_dir, "assets"))
+            print("Copied game assets")
+
+        end
     end)
 target_end()
