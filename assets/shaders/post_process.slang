@@ -1,14 +1,14 @@
 import smol_globals;
 
-[MaterialReflection]
-struct PostProcessData
+[ShaderConfig("PostProcess", "Opaque", false, false)]
+struct PostProcessShader
 {
     uint scene_color_tex;
 };
 
-ConstantBuffer<PostProcessData> material_reflection;
+StructuredBuffer<PostProcessShader> _reflection_PostProcessShader;
 
-[RenderConfig("PostProcess", "Opaque", false, false)]
+[RenderTargetsConfig]
 struct PostProcessOutput
 {
     [RenderTarget("Swapchain")]
@@ -35,7 +35,7 @@ VertexOut vertexMain(uint vertex_id: SV_VertexID)
 [shader("fragment")]
 PostProcessOutput fragmentMain(VertexOut input)
 {
-    PostProcessData mat = getMaterial<PostProcessData>(pc.material_buffer_id, pc.custom_data);
+    PostProcessShader mat = getMaterial<PostProcessShader>(pc.material_buffer_id, pc.custom_data);
 
     float4 hdr_color = global_textures[mat.scene_color_tex].Sample(global_samplers[0], input.uv);
 

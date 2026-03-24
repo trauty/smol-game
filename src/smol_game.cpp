@@ -140,7 +140,9 @@ extern "C"
         asset_t<texture_t> rock_tex = smol::load_asset_sync<texture_t>("assets/textures/rock_albedo.png");
 
         asset_t<shader_t> pp_shader = smol::load_asset_sync<shader_t>("assets/shaders/post_process.slang");
-        asset_t<material_t> pp_material = smol::load_asset_sync<material_t>("pp_material", pp_shader);
+        renderer::register_custom_shader(pp_shader);
+
+        asset_t<material_t> pp_material = smol::load_asset_sync<material_t>("pp_material", "PostProcessShader");
         graphics_state.add_material(smol::hash_string("PostProcessing"), pp_material);
 
         renderer::register_renderer_feature(
@@ -166,7 +168,6 @@ extern "C"
                 }
             });
 
-        asset_t<shader_t> unlit_shader = smol::load_asset_sync<shader_t>("assets/shaders/unlit.slang");
         color_t colors[5] = {
             {1.0f, 1.0f, 1.0f, 1.0f},
             {1.0f, 0.2f, 0.2f, 1.0f},
@@ -178,7 +179,7 @@ extern "C"
         for (int i = 0; i < 5; i++)
         {
             std::string mat_name = "croissant_mat_" + std::to_string(i);
-            asset_t<material_t> mat = smol::load_asset_sync<material_t>(mat_name.c_str(), unlit_shader);
+            asset_t<material_t> mat = smol::load_asset_sync<material_t>(mat_name.c_str(), "UnlitShader");
 
             mat->set_property<color_t>("color", colors[i]);
             mat->set_texture("albedo_tex", i % 2 == 0 ? croissant_tex : rock_tex);
@@ -187,8 +188,7 @@ extern "C"
             graphics_state.add_material(smol::hash_string(mat_name.c_str()), mat);
         }
 
-        asset_t<shader_t> lit_shader = smol::load_asset_sync<shader_t>("assets/shaders/simple_lit.slang");
-        asset_t<material_t> lit_mat = smol::load_asset_sync<material_t>("lit_mat0", lit_shader);
+        asset_t<material_t> lit_mat = smol::load_asset_sync<material_t>("lit_mat0", "SimpleLitShader");
 
         lit_mat->set_property<color_t>("color", {1.0f, 1.0f, 1.0f, 1.0f});
         lit_mat->set_texture("albedo_tex", rock_tex);
