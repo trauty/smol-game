@@ -39,11 +39,16 @@ PostProcessOutput fragmentMain(VertexOut input)
 
     float4 hdr_color = global_textures[mat.scene_color_tex].Sample(global_samplers[0], input.uv);
 
-    // reinhard tonemapping
-    float3 mapped = hdr_color.rgb / (hdr_color.rgb + float3(1.0f));
+    float exposure = 1.12f;
+    float3 color = hdr_color.rgb * exposure;
 
-    // gamma correction
-    mapped = pow(mapped, float3(1.0f / 2.2f));
+    // aces filmic curve
+    float a = 2.51f;
+    float b = 0.03f;
+    float c = 2.43f;
+    float d = 0.59f;
+    float e = 0.14f;
+    float3 mapped = clamp((color * (a * color + b)) / (color * (c * color + d) + e), 0.0f, 1.0f);
 
     PostProcessOutput out;
     out.color = float4(mapped, 1.0f);
