@@ -51,7 +51,6 @@ target("smol-game")
         if os.isdir("assets") then
             os.cp("assets/*", path.join(dest_dir, "assets"))
             print("Copied game assets")
-
         end
     end)
 target_end()
