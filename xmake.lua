@@ -21,16 +21,20 @@ set_languages("cxx20")
 add_rules("mode.debug", "mode.release", "mode.releasedbg")
 add_rules("plugin.compile_commands.autoupdate", {outputdir = "."})
 
-if is_mode("debug") then
-    set_policy("build.sanitizer.address", true)
-end 
-
 includes("smol-engine")
 
 target("smol-game")
     set_kind("shared")
     set_basename(get_config("game_lib_name"))
     add_cxflags("-march=x86-64-v3")
+
+    if is_mode("debug") then
+        set_policy("build.sanitizer.address", true)
+
+        if is_plat("windows") then
+            add_defines("_DISABLE_STRING_ANNOTATION", "_DISABLE_VECTOR_ANNOTATION", {public = true})
+        end
+    end
 
     add_defines("SMOL_EXPORT")
 
