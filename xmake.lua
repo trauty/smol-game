@@ -44,6 +44,7 @@ target("smol-game")
     end
     
     add_deps("smol-interface")
+    add_deps("smol-cooker", {inherit = false})
     add_deps("smol-engine")
 
     add_files("src/**.cpp")
@@ -52,9 +53,22 @@ target("smol-game")
     after_build(function (target)
         local dest_dir = target:targetdir()
 
-        if os.isdir("assets") then
-            os.cp("assets/*", path.join(dest_dir, "assets"))
-            print("Copied game assets")
-        end
+        local cooker_bin = target:dep("smol-cooker"):targetfile()
+        local engine_assets = path.join(os.scriptdir(), "smol-engine/assets")
+        local game_assets = "assets"
+        local out_dir = ".smol"
+
+        print("Running smol-cooker...")
+        os.execv(cooker_bin, {
+            "-i", engine_assets,
+            "-i", game_assets,
+            "-o", out_dir
+        })
+
+        local target_assets = path.join(dest_dir, out_dir)
+        os.mkdir(target_assets)
+        os.cp(path.join(out_dir, "*"), target_assets)
+
+        print("Cooked assets and copied folder to build dir")
     end)
 target_end()

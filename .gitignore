@@ -4,3 +4,4 @@ build/
 .vscode/
 .xmake/
 compile_commands.json
+.smol/
