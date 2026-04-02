@@ -1,0 +1,10 @@
+{
+    "project_name": "smol-game",
+    "version": "0.0.1",
+    "game_lib_name": "smol-game-logic",
+    "paths": {
+        "bin_dir": "bin",
+        "assets_dir": "assets",
+        "cooked_assets_dir": ".smol"
+    }
+}

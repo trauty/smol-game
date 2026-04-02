@@ -273,28 +273,6 @@ extern "C"
             graphics_state.add_material(smol::hash_string("glass_mat"), glass_mat);
         }
 
-        world->register_update_system(
-            [](ecs::registry_t& reg)
-            {
-                vec3_t rot = {0.8f * (f32)time::get_time(), 0.7f * (f32)time::get_time(), 0.9f * (f32)time::get_time()};
-                for (auto [entity, rotator, transform] : reg.view<rotator_t, transform_t>().each())
-                {
-                    transform.local_rotation = quat_t::from_euler(rot);
-                    transform.is_dirty = true;
-                }
-            });
-
-        world->register_update_system(
-            [](ecs::registry_t& reg)
-            {
-                vec3_t scale = {2.0f * std::cos((f32)time::get_time()), 1.0f, 2.0f * std::cos((f32)time::get_time())};
-                for (auto [entity, rotator, transform] : reg.view<scaler_t, transform_t>().each())
-                {
-                    transform.local_scale = scale;
-                    transform.is_dirty = true;
-                }
-            });
-
         game_state_t& game_state = world->registry.ctx().emplace<game_state_t>();
         game_state.scenes.push_back(load_scene_base_draw);
         game_state.scenes.push_back(load_scene_blinn_phong);
@@ -305,6 +283,7 @@ extern "C"
 
     SMOL_API void smol_game_update(smol::world_t* world)
     {
+        ecs::registry_t& reg = world->registry;
         game_state_t& game_state = world->registry.ctx().get<game_state_t>();
 
         if (smol::input::get_key_down(input::key_t::Space))
@@ -313,6 +292,20 @@ extern "C"
             SMOL_LOG_INFO("GAME", "Switching to scene index: {}", game_state.current_scene_index);
 
             game_state.scenes[game_state.current_scene_index](world);
+        }
+
+        vec3_t rot = {0.8f * (f32)time::get_time(), 0.7f * (f32)time::get_time(), 0.9f * (f32)time::get_time()};
+        for (auto [entity, rotator, transform] : reg.view<rotator_t, transform_t>().each())
+        {
+            transform.local_rotation = quat_t::from_euler(rot);
+            transform.is_dirty = true;
+        }
+
+        vec3_t scale = {2.0f * std::cos((f32)time::get_time()), 1.0f, 2.0f * std::cos((f32)time::get_time())};
+        for (auto [entity, rotator, transform] : reg.view<scaler_t, transform_t>().each())
+        {
+            transform.local_scale = scale;
+            transform.is_dirty = true;
         }
     }
 

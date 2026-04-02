@@ -5,3 +5,4 @@ build/
 .xmake/
 compile_commands.json
 .smol/
+bin/

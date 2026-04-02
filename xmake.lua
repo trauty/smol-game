@@ -2,7 +2,6 @@ set_project("smol-game")
 set_version("0.0.1")
 
 set_config("game_name", "smol-game")
-set_config("game_lib_name", "smol-game-logic")
 
 if is_plat("linux") then 
     set_toolchains("clang")
@@ -27,6 +26,8 @@ target("smol-game")
     set_kind("shared")
     set_basename(get_config("game_lib_name"))
     add_cxflags("-march=x86-64-v3")
+
+    set_targetdir("bin")
 
     if is_mode("debug") then
         set_policy("build.sanitizer.address", true)
@@ -65,10 +66,13 @@ target("smol-game")
             "-o", out_dir
         })
 
-        local target_assets = path.join(dest_dir, out_dir)
+        local target_assets = path.join(target:dep("smol-cooker"):targetdir(), out_dir)
         os.mkdir(target_assets)
         os.cp(path.join(out_dir, "*"), target_assets)
 
-        print("Cooked assets and copied folder to build dir")
+        print("Cooked assets and copied folder to build dir: " .. target_assets)
+
+        local trigger_file = target:targetfile() .. ".trigger"
+        io.writefile(trigger_file, os.date("%Y-%m-%d %H:%M:%S"))
     end)
 target_end()
