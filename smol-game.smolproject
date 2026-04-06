@@ -1,7 +1,7 @@
 {
     "project_name": "smol-game",
     "version": "0.0.1",
-    "game_lib_name": "smol-game-logic",
+    "game_lib_name": "smol-game",
     "paths": {
         "bin_dir": "bin",
         "assets_dir": "assets",

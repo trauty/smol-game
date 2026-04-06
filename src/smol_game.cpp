@@ -210,7 +210,9 @@ extern "C"
             {
                 renderer::rg_resource_id scene_color = graph.get_resource("SceneColor");
                 renderer::rg_resource_id scene_depth = graph.get_resource("SceneDepth");
-                renderer::rg_resource_id swapchain = graph.get_resource("Swapchain");
+
+                renderer::rg_resource_id final_target = graph.get_resource("ViewportColor");
+                if (final_target == renderer::RG_NULL_ID) { final_target = graph.get_resource("Swapchain"); }
 
                 renderer::add_mesh_pass(graph, "MainForward", "MainForwardPass", {}, {scene_color}, scene_depth);
 
@@ -219,7 +221,7 @@ extern "C"
 
                 if (pp_mat && pp_mat->shader && pp_mat->shader->ready())
                 {
-                    renderer::add_fullscreen_pass(graph, "PostProcess", pp_mat, {scene_color}, {swapchain},
+                    renderer::add_fullscreen_pass(graph, "PostProcess", pp_mat, {scene_color}, {final_target},
                                                   [](renderer::rendergraph_t& g, material_t& mat)
                                                   {
                                                       u32_t color_id = g.get_bindless_id(g.get_resource("SceneColor"));
