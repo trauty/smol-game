@@ -193,6 +193,11 @@ extern "C"
 {
     SMOL_API void smol_game_init(smol::world_t* world)
     {
+#ifndef SMOL_STATIC_LINK
+        volkInitialize();
+        volkLoadInstance(smol::renderer::ctx.instance);
+        volkLoadDevice(smol::renderer::ctx.device);
+#endif
         graphics_state_t& graphics_state = world->registry.ctx().emplace<graphics_state_t>();
 
         asset_t<texture_t> croissant_tex = smol::load_asset_sync<texture_t>("assets/textures/low_quality_pastry.png");
@@ -211,8 +216,7 @@ extern "C"
                 renderer::rg_resource_id scene_color = graph.get_resource("SceneColor");
                 renderer::rg_resource_id scene_depth = graph.get_resource("SceneDepth");
 
-                renderer::rg_resource_id final_target = graph.get_resource("ViewportColor");
-                if (final_target == renderer::RG_NULL_ID) { final_target = graph.get_resource("Swapchain"); }
+                renderer::rg_resource_id final_target = graph.get_resource("FinalOutput");
 
                 renderer::add_mesh_pass(graph, "MainForward", "MainForwardPass", {}, {scene_color}, scene_depth);
 

@@ -22,8 +22,18 @@ add_rules("plugin.compile_commands.autoupdate", {outputdir = "."})
 
 includes("smol-engine")
 
+local is_standalone = has_config("standalone")
+
 target("smol-game")
-    set_kind("shared")
+    if is_standalone then
+        set_kind("static")
+    else
+        set_kind("shared")
+        if is_plat("linux") then 
+            add_shflags("-Wl,-Bsymbolic")
+        end
+    end
+    
     set_basename(get_config("game_lib_name"))
     add_cxflags("-march=x86-64-v3")
 
