@@ -50,8 +50,8 @@ void load_scene_base_draw(smol::world_t* world)
 
     graphics_state_t& state = reg.ctx().get<graphics_state_t>();
 
-    asset_t<mesh_t> monkee_mesh = smol::load_asset_sync<mesh_t>("assets/models/monkee.glb");
-    asset_t<mesh_t> croissant_mesh = smol::load_asset_sync<mesh_t>("assets/models/croissant.glb");
+    asset_t<mesh_t> monkee_mesh = smol::load_asset_sync<mesh_t>("game://assets/models/monkee.glb");
+    asset_t<mesh_t> croissant_mesh = smol::load_asset_sync<mesh_t>("game://assets/models/croissant.glb");
 
     std::vector<asset_t<material_t>> materials;
     for (int i = 0; i < 5; i++)
@@ -98,7 +98,7 @@ void load_scene_blinn_phong(smol::world_t* world)
 
     graphics_state_t& state = reg.ctx().get<graphics_state_t>();
 
-    asset_t<mesh_t> monkee_mesh = smol::load_asset_sync<mesh_t>("assets/models/monkee.glb");
+    asset_t<mesh_t> monkee_mesh = smol::load_asset_sync<mesh_t>("game://assets/models/monkee.glb");
     asset_t<material_t> lit_mat = state.get_material(smol::hash_string("lit_mat0"));
 
     ecs::entity_t obj = reg.create();
@@ -139,7 +139,7 @@ void load_scene_transparency(smol::world_t* world)
     reg.clear();
 
     graphics_state_t& state = reg.ctx().get<graphics_state_t>();
-    asset_t<mesh_t> monkee_mesh = smol::load_asset_sync<mesh_t>("assets/models/monkee.glb");
+    asset_t<mesh_t> monkee_mesh = smol::load_asset_sync<mesh_t>("game://assets/models/monkee.glb");
 
     asset_t<material_t> opaque_mat = state.get_material(smol::hash_string("lit_mat0"));
     asset_t<material_t> cutout_mat = state.get_material(smol::hash_string("cutout_mat"));
@@ -200,11 +200,12 @@ extern "C"
 #endif
         graphics_state_t& graphics_state = world->registry.ctx().emplace<graphics_state_t>();
 
-        asset_t<texture_t> croissant_tex = smol::load_asset_sync<texture_t>("assets/textures/low_quality_pastry.png");
-        asset_t<texture_t> cutout_test_tex = smol::load_asset_sync<texture_t>("assets/textures/cutout_test.png");
-        asset_t<texture_t> rock_tex = smol::load_asset_sync<texture_t>("assets/textures/rock_albedo.png");
+        asset_t<texture_t> croissant_tex =
+            smol::load_asset_sync<texture_t>("game://assets/textures/low_quality_pastry.png");
+        asset_t<texture_t> cutout_test_tex = smol::load_asset_sync<texture_t>("game://assets/textures/cutout_test.png");
+        asset_t<texture_t> rock_tex = smol::load_asset_sync<texture_t>("game://assets/textures/rock_albedo.png");
 
-        asset_t<shader_t> pp_shader = smol::load_asset_sync<shader_t>("assets/shaders/post_process.slang");
+        asset_t<shader_t> pp_shader = smol::load_asset_sync<shader_t>("game://assets/shaders/post_process.slang");
         renderer::register_custom_shader(pp_shader);
 
         asset_t<material_t> pp_material = smol::load_asset_sync<material_t>("pp_material", "PostProcessShader");
