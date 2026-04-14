@@ -1,8 +1,8 @@
 import smol_globals;
 import lighting;
 
-[ShaderConfig("MainForwardPass", "Opaque", true, true)]
-struct SimpleLitShader
+[ShaderConfig("MainForwardPass", "TransparentAlpha", false, true)]
+struct TransparentAlphaShader
 {
     float4 color;
     uint albedo_tex;
@@ -28,7 +28,7 @@ FragmentOut fragmentMain(VertexOut in)
     GlobalData globals = getGlobalData();
     ObjectData obj = getObjectData(in.draw_id);
 
-    SimpleLitShader mat = getMaterial<SimpleLitShader>(obj.material_offset);
+    TransparentAlphaShader mat = getMaterial<TransparentAlphaShader>(obj.material_offset);
 
     Surface surface;
     surface.albedo = getTexture(mat.albedo_tex).Sample(getSampler(mat.albedo_sampler), in.uv).rgb * mat.color.rgb;
@@ -42,3 +42,4 @@ FragmentOut fragmentMain(VertexOut in)
     out.color = float4(final_color, 1.0f);
     return out;
 }
+
