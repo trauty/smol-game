@@ -206,10 +206,9 @@ extern "C"
         asset_t<texture_t> rock_tex = smol::load_asset_sync<texture_t>("game://assets/textures/rock_albedo.png");
 
         asset_t<shader_t> pp_shader = smol::load_asset_sync<shader_t>("game://assets/shaders/post_process.slang");
-        renderer::register_custom_shader(pp_shader);
 
-        asset_t<material_t> pp_material = smol::load_asset_sync<material_t>("pp_material", "PostProcessShader");
-        graphics_state.add_material(smol::hash_string("PostProcessing"), pp_material);
+        asset_t<material_t> pp_material = smol::load_asset_sync<material_t>("pp_material", pp_shader);
+        graphics_state.add_material("PostProcessing"_h, pp_material);
 
         renderer::register_renderer_feature(
             [](renderer::rendergraph_t& graph, ecs::registry_t& reg)
@@ -222,7 +221,7 @@ extern "C"
                 renderer::add_mesh_pass(graph, "MainForward", "MainForwardPass", {}, {scene_color}, scene_depth);
 
                 graphics_state_t& graphics_state = reg.ctx().get<graphics_state_t>();
-                asset_t<material_t> pp_mat = graphics_state.get_material(smol::hash_string("PostProcessing"));
+                asset_t<material_t> pp_mat = graphics_state.get_material("PostProcessing"_h);
 
                 if (pp_mat && pp_mat->shader && pp_mat->shader->ready())
                 {
@@ -243,10 +242,12 @@ extern "C"
             {1.0f, 1.0f, 0.2f, 1.0f}
         };
 
+        asset_t<shader_t> unlit_shader = smol::load_asset_sync<shader_t>("game://assets/shaders/unlit.slang");
+
         for (int i = 0; i < 5; i++)
         {
             std::string mat_name = "croissant_mat_" + std::to_string(i);
-            asset_t<material_t> mat = smol::load_asset_sync<material_t>(mat_name.c_str(), "UnlitShader");
+            asset_t<material_t> mat = smol::load_asset_sync<material_t>(mat_name.c_str(), unlit_shader);
 
             mat->set_property<color_t>("color"_h, colors[i]);
             mat->set_texture("albedo_tex"_h, i % 2 == 0 ? croissant_tex : rock_tex);
@@ -255,29 +256,44 @@ extern "C"
             graphics_state.add_material(smol::hash_string(mat_name.c_str()), mat);
         }
 
-        asset_t<material_t> lit_mat = smol::load_asset_sync<material_t>("lit_mat0", "SimpleLitShader");
-        lit_mat->set_property<color_t>("color"_h, {1.0f, 1.0f, 1.0f, 1.0f});
-        lit_mat->set_texture("albedo_tex"_h, rock_tex);
-        lit_mat->set_sampler("albedo_sampler"_h, sampler_type_e::LINEAR_REPEAT);
-        lit_mat->set_property<float>("smoothness"_h, 32.0f);
-        graphics_state.add_material(smol::hash_string("lit_mat0"), lit_mat);
-
-        asset_t<material_t> cutout_mat = smol::load_asset_sync<material_t>("cutout_mat", "CutoutLitShader");
-        if (cutout_mat)
+        asset_t<shader_t> lit_shader = smol::load_asset_sync<shader_t>("game://assets/shaders/simple_lit.slang");
+        asset_t<material_t> lit_mat = smol::load_asset_sync<material_t>("lit_mat0", lit_shader);
+        if (lit_mat)
         {
-            cutout_mat->set_property<color_t>("color"_h, {1.0f, 1.0f, 1.0f, 1.0f});
-            cutout_mat->set_property<float>("alpha_cutoff"_h, 0.5f);
-            cutout_mat->set_property<float>("smoothness"_h, 32.0f);
-            cutout_mat->set_texture("albedo_tex"_h, cutout_test_tex);
-            cutout_mat->set_sampler("albedo_sampler"_h, sampler_type_e::NEAREST_REPEAT);
-            graphics_state.add_material(smol::hash_string("cutout_mat"), cutout_mat);
+            lit_mat->set_property<color_t>("color"_h, {1.0f, 1.0f, 1.0f, 1.0f});
+            lit_mat->set_texture("albedo_tex"_h, rock_tex);
+            lit_mat->set_sampler("albedo_sampler"_h, sampler_type_e::LINEAR_REPEAT);
+            lit_mat->set_property<float>("smoothness"_h, 32.0f);
+            graphics_state.add_material(smol::hash_string("lit_mat0"), lit_mat);
         }
 
-        asset_t<material_t> glass_mat = smol::load_asset_sync<material_t>("glass_mat", "GlassShader");
-        if (glass_mat)
+        asset_t<shader_t> cutout_shader =
+            smol::load_asset_sync<shader_t>("game://assets/shaders/cutout_lit.smolshader");
+        if (cutout_shader)
         {
-            glass_mat->set_property<color_t>("color"_h, {0.4f, 0.8f, 1.0f, 0.4f});
-            graphics_state.add_material(smol::hash_string("glass_mat"), glass_mat);
+            asset_t<material_t> cutout_mat = smol::load_asset_sync<material_t>("cutout_mat", cutout_shader);
+            if (cutout_mat)
+            {
+                cutout_mat->set_property<color_t>("color"_h, {1.0f, 1.0f, 1.0f, 1.0f});
+                cutout_mat->set_property<f32>("alpha_cutoff"_h, 0.5f);
+                cutout_mat->set_property<f32>("smoothness"_h, 32.0f);
+                cutout_mat->set_texture("albedo_tex"_h, cutout_test_tex);
+                cutout_mat->set_sampler("albedo_sampler"_h, sampler_type_e::NEAREST_REPEAT);
+                graphics_state.add_material("cutout_mat"_h, cutout_mat);
+            }
+        }
+
+        asset_t<shader_t> glass_shader =
+            smol::load_asset_sync<shader_t>("game://assets/shaders/transparent_alpha.smolshader");
+        if (glass_shader)
+        {
+            asset_t<material_t> glass_mat = smol::load_asset_sync<material_t>("glass_mat", glass_shader);
+            if (glass_mat)
+            {
+                glass_mat->set_property<color_t>("color"_h, {0.4f, 0.8f, 1.0f, 0.2f});
+                glass_mat->set_property<f32>("smoothness"_h, 32.0f);
+                graphics_state.add_material(smol::hash_string("glass_mat"), glass_mat);
+            }
         }
 
         game_state_t& game_state = world->registry.ctx().emplace<game_state_t>();

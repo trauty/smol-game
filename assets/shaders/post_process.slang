@@ -6,8 +6,6 @@ struct PostProcessShader
     uint scene_color_tex;
 };
 
-StructuredBuffer<PostProcessShader> _reflection_PostProcessShader;
-
 [RenderTargetsConfig]
 struct PostProcessOutput
 {

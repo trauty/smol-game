@@ -25,13 +25,14 @@ VertexOut vertexMain(uint vertex_id: SV_VertexID, uint instance_id: SV_InstanceI
 [shader("fragment")]
 FragmentOut fragmentMain(VertexOut in)
 {
-    GlobalData globals = getGlobalData();
     ObjectData obj = getObjectData(in.draw_id);
 
     TransparentAlphaShader mat = getMaterial<TransparentAlphaShader>(obj.material_offset);
 
+    float4 base_color = getTexture(mat.albedo_tex).Sample(getSampler(mat.albedo_sampler), in.uv) * mat.color;
+
     Surface surface;
-    surface.albedo = getTexture(mat.albedo_tex).Sample(getSampler(mat.albedo_sampler), in.uv).rgb * mat.color.rgb;
+    surface.albedo = base_color.rgb;
     surface.normal = normalize(in.normal);
     surface.view_dir = normalize(globals.camera_pos.xyz - in.world_pos);
     surface.smoothness = mat.smoothness;
@@ -39,7 +40,7 @@ FragmentOut fragmentMain(VertexOut in)
     float3 final_color = applyBlinnPhongLighting(surface, in.world_pos);
 
     FragmentOut out;
-    out.color = float4(final_color, 1.0f);
+    out.color = float4(final_color, base_color.a);
     return out;
 }
 

@@ -27,7 +27,6 @@ VertexOut vertexMain(uint vertex_id: SV_VertexID, uint instance_id: SV_InstanceI
 [shader("fragment")]
 FragmentOut fragmentMain(VertexOut in)
 {
-    GlobalData globals = getGlobalData();
     ObjectData obj = getObjectData(in.draw_id);
     CutoutLitShader mat = getMaterial<CutoutLitShader>(obj.material_offset);
 
