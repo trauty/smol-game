@@ -213,24 +213,26 @@ extern "C"
         renderer::register_renderer_feature(
             [](renderer::rendergraph_t& graph, ecs::registry_t& reg)
             {
-                renderer::rg_resource_id scene_color = graph.get_resource("SceneColor");
-                renderer::rg_resource_id scene_depth = graph.get_resource("SceneDepth");
+                renderer::rg_resource_id scene_color = graph.get_resource("SceneColor"_h);
+                renderer::rg_resource_id scene_depth = graph.get_resource("SceneDepth"_h);
 
-                renderer::rg_resource_id final_target = graph.get_resource("FinalOutput");
+                renderer::rg_resource_id final_target = graph.get_resource("FinalOutput"_h);
 
-                renderer::add_mesh_pass(graph, "MainForward", "MainForwardPass", {}, {scene_color}, scene_depth);
+                renderer::add_mesh_pass(graph, "MainForward"_h, "MainForwardPass", "MainForwardPass", {}, {scene_color},
+                                        scene_depth);
 
                 graphics_state_t& graphics_state = reg.ctx().get<graphics_state_t>();
-                asset_t<material_t> pp_mat = graphics_state.get_material("PostProcessing"_h);
+                material_t* pp_mat = graphics_state.get_material_raw("PostProcessing"_h);
 
                 if (pp_mat && pp_mat->shader && pp_mat->shader->ready())
                 {
-                    renderer::add_fullscreen_pass(graph, "PostProcess", pp_mat, {scene_color}, {final_target},
-                                                  [](renderer::rendergraph_t& g, material_t& mat)
-                                                  {
-                                                      u32_t color_id = g.get_bindless_id(g.get_resource("SceneColor"));
-                                                      mat.set_property("scene_color_tex"_h, color_id);
-                                                  });
+                    renderer::add_fullscreen_pass(
+                        graph, "PostProcess"_h, "PostProcess", pp_mat, {scene_color}, {final_target},
+                        [](renderer::rendergraph_t& g, material_t& mat)
+                        {
+                            u32_t color_id = g.get_bindless_id(g.get_resource("SceneColor"_h));
+                            mat.set_property("scene_color_tex"_h, color_id);
+                        });
                 }
             });
 
