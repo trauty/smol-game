@@ -1,9 +1,13 @@
+#include "entt/locator/locator.hpp"
+#include "entt/meta/context.hpp"
 #include "smol/asset.h"
 #include "smol/assets/shader.h"
+#include "smol/components/tag.h"
 #include "smol/ecs_fwd.h"
 #include "smol/hash.h"
 #include "smol/input.h"
 #include "smol/log.h"
+#include "smol/reflection.h"
 #include "smol/rendering/graphics_state.h"
 #include "smol/rendering/renderer.h"
 #include "smol/rendering/rendergraph.h"
@@ -22,6 +26,7 @@
 #include <smol/game.h>
 #include <smol/systems/transform.h>
 #include <smol/time.h>
+#include <string>
 #include <sys/types.h>
 
 using namespace smol;
@@ -66,6 +71,7 @@ void load_scene_base_draw(smol::world_t* world)
         for (int y = -10; y < 10; y++)
         {
             ecs::entity_t test_entity = reg.create();
+            reg.emplace<tag_t>(test_entity, "TestMesh" + std::to_string(x) + std::to_string(y));
             reg.emplace<rotator_t>(test_entity);
             mesh_renderer_t& renderer = reg.emplace<mesh_renderer_t>(test_entity);
 
@@ -85,6 +91,7 @@ void load_scene_base_draw(smol::world_t* world)
     }
 
     ecs::entity_t cam_entity = reg.create();
+    reg.emplace<tag_t>(cam_entity, "MainCamera");
     reg.emplace<camera_t>(cam_entity);
     reg.emplace<transform_t>(cam_entity);
     reg.emplace<active_camera_tag>(cam_entity);
@@ -102,6 +109,7 @@ void load_scene_blinn_phong(smol::world_t* world)
     asset_t<material_t> lit_mat = state.get_material(smol::hash_string("lit_mat0"));
 
     ecs::entity_t obj = reg.create();
+    reg.emplace<tag_t>(obj, "TestMesh");
     mesh_renderer_t& renderer = reg.emplace<mesh_renderer_t>(obj);
     renderer.mesh = monkee_mesh;
     renderer.material = lit_mat;
@@ -110,6 +118,7 @@ void load_scene_blinn_phong(smol::world_t* world)
     reg.emplace<scaler_t>(obj);
 
     ecs::entity_t sun = reg.create();
+    reg.emplace<tag_t>(sun, "Sun");
     reg.emplace<transform_t>(sun);
     smol::transform_system::set_local_rotation(reg, sun, quat_t::from_euler({-0.8f, 0.5f, 0.0f}));
 
@@ -118,6 +127,7 @@ void load_scene_blinn_phong(smol::world_t* world)
     dir_light.intensity = 1.0f;
 
     ecs::entity_t p_light = reg.create();
+    reg.emplace<tag_t>(p_light, "PointLight");
     reg.emplace<transform_t>(p_light);
     smol::transform_system::set_local_position(reg, p_light, {2.0f, 1.0f, -2.0f});
 
@@ -127,6 +137,7 @@ void load_scene_blinn_phong(smol::world_t* world)
     point.radius = 10.0f;
 
     ecs::entity_t cam = reg.create();
+    reg.emplace<tag_t>(cam, "MainCamera");
     reg.emplace<camera_t>(cam);
     reg.emplace<transform_t>(cam);
     reg.emplace<active_camera_tag>(cam);
@@ -146,6 +157,7 @@ void load_scene_transparency(smol::world_t* world)
     asset_t<material_t> glass_mat = state.get_material(smol::hash_string("glass_mat"));
 
     ecs::entity_t bg_obj = reg.create();
+    reg.emplace<tag_t>(bg_obj, "LightingMesh");
     mesh_renderer_t& bg_res = reg.emplace<mesh_renderer_t>(bg_obj);
     bg_res.mesh = monkee_mesh;
     bg_res.material = opaque_mat;
@@ -156,6 +168,7 @@ void load_scene_transparency(smol::world_t* world)
     if (cutout_mat)
     {
         ecs::entity_t c_obj = reg.create();
+        reg.emplace<tag_t>(c_obj, "CutoutTest");
         mesh_renderer_t& c_res = reg.emplace<mesh_renderer_t>(c_obj);
         c_res.mesh = monkee_mesh;
         c_res.material = cutout_mat;
@@ -167,6 +180,7 @@ void load_scene_transparency(smol::world_t* world)
     if (glass_mat)
     {
         ecs::entity_t t_obj = reg.create();
+        reg.emplace<tag_t>(t_obj, "TransparentTest");
         mesh_renderer_t& t_res = reg.emplace<mesh_renderer_t>(t_obj);
         t_res.mesh = monkee_mesh;
         t_res.material = glass_mat;
@@ -176,6 +190,7 @@ void load_scene_transparency(smol::world_t* world)
     }
 
     ecs::entity_t sun = reg.create();
+    reg.emplace<tag_t>(sun, "Sun");
     reg.emplace<transform_t>(sun);
     smol::transform_system::set_local_rotation(reg, sun, quat_t::from_euler({-0.5f, 0.3f, 0.0f}));
     directional_light_t& dir_light = reg.emplace<directional_light_t>(sun);
@@ -183,156 +198,168 @@ void load_scene_transparency(smol::world_t* world)
     dir_light.intensity = 1.0f;
 
     ecs::entity_t cam = reg.create();
+    reg.emplace<tag_t>(cam, "MainCamera");
     reg.emplace<camera_t>(cam);
     reg.emplace<transform_t>(cam);
     reg.emplace<active_camera_tag>(cam);
     smol::transform_system::set_local_position(reg, cam, {0.0f, 0.0f, -10.0f});
 }
 
-extern "C"
+void smol_game_init(smol::world_t* world)
 {
-    SMOL_API void smol_game_init(smol::world_t* world)
+    smol::reflection::factory<rotator_t>{*world->reflection_ctx}
+        .type("rotator_t"_h)
+        .custom<smol::reflection::editor_prop_t>("Rotator")
+        .func<&smol::reflection::get_component<rotator_t>>("get_component"_h)
+        .func<&smol::reflection::add_component<rotator_t>>("add"_h)
+        .func<&smol::reflection::remove_component<rotator_t>>("remove"_h)
+        .data<&rotator_t::test>("test"_h)
+        .custom<smol::reflection::editor_prop_t>("Test Value");
+
+    smol::reflection::factory<scaler_t>{*world->reflection_ctx}
+        .type("scaler_t"_h)
+        .custom<smol::reflection::editor_prop_t>("Scaler")
+        .func<&smol::reflection::get_component<scaler_t>>("get_component"_h)
+        .func<&smol::reflection::add_component<scaler_t>>("add"_h)
+        .func<&smol::reflection::remove_component<scaler_t>>("remove"_h)
+        .data<&scaler_t::test>("test"_h)
+        .custom<smol::reflection::editor_prop_t>("Test Value");
+
+    graphics_state_t& graphics_state = world->registry.ctx().emplace<graphics_state_t>();
+
+    asset_t<texture_t> croissant_tex =
+        smol::load_asset_sync<texture_t>("game://assets/textures/low_quality_pastry.png");
+    asset_t<texture_t> cutout_test_tex = smol::load_asset_sync<texture_t>("game://assets/textures/cutout_test.png");
+    asset_t<texture_t> rock_tex = smol::load_asset_sync<texture_t>("game://assets/textures/rock_albedo.png");
+
+    asset_t<shader_t> pp_shader = smol::load_asset_sync<shader_t>("game://assets/shaders/post_process.slang");
+
+    asset_t<material_t> pp_material = smol::load_asset_sync<material_t>("pp_material", pp_shader);
+    graphics_state.add_material("PostProcessing"_h, pp_material);
+
+    renderer::register_renderer_feature(
+        [](renderer::rendergraph_t& graph, ecs::registry_t& reg)
+        {
+            renderer::rg_resource_id scene_color = graph.get_resource("SceneColor"_h);
+            renderer::rg_resource_id scene_depth = graph.get_resource("SceneDepth"_h);
+
+            renderer::rg_resource_id final_target = graph.get_resource("FinalOutput"_h);
+
+            renderer::add_mesh_pass(graph, "MainForward"_h, "MainForwardPass", "MainForwardPass", {}, {scene_color},
+                                    scene_depth);
+
+            graphics_state_t& graphics_state = reg.ctx().get<graphics_state_t>();
+            material_t* pp_mat = graphics_state.get_material_raw("PostProcessing"_h);
+
+            if (pp_mat && pp_mat->shader && pp_mat->shader->ready())
+            {
+                renderer::add_fullscreen_pass(graph, "PostProcess"_h, "PostProcess", pp_mat, {scene_color},
+                                              {final_target},
+                                              [](renderer::rendergraph_t& g, material_t& mat)
+                                              {
+                                                  u32_t color_id = g.get_bindless_id(g.get_resource("SceneColor"_h));
+                                                  mat.set_property("scene_color_tex"_h, color_id);
+                                              });
+            }
+        });
+
+    color_t colors[5] = {
+        {1.0f, 1.0f, 1.0f, 1.0f},
+        {1.0f, 0.2f, 0.2f, 1.0f},
+        {0.2f, 1.0f, 0.2f, 1.0f},
+        {0.2f, 0.2f, 1.0f, 1.0f},
+        {1.0f, 1.0f, 0.2f, 1.0f}
+    };
+
+    asset_t<shader_t> unlit_shader = smol::load_asset_sync<shader_t>("game://assets/shaders/unlit.slang");
+
+    for (int i = 0; i < 5; i++)
     {
-#ifndef SMOL_STATIC_LINK
-        volkInitialize();
-        volkLoadInstance(smol::renderer::ctx.instance);
-        volkLoadDevice(smol::renderer::ctx.device);
-#endif
-        graphics_state_t& graphics_state = world->registry.ctx().emplace<graphics_state_t>();
+        std::string mat_name = "croissant_mat_" + std::to_string(i);
+        asset_t<material_t> mat = smol::load_asset_sync<material_t>(mat_name.c_str(), unlit_shader);
 
-        asset_t<texture_t> croissant_tex =
-            smol::load_asset_sync<texture_t>("game://assets/textures/low_quality_pastry.png");
-        asset_t<texture_t> cutout_test_tex = smol::load_asset_sync<texture_t>("game://assets/textures/cutout_test.png");
-        asset_t<texture_t> rock_tex = smol::load_asset_sync<texture_t>("game://assets/textures/rock_albedo.png");
+        mat->set_property<color_t>("color"_h, colors[i]);
+        mat->set_texture("albedo_tex"_h, i % 2 == 0 ? croissant_tex : rock_tex);
+        mat->set_sampler("albedo_sampler"_h, sampler_type_e::LINEAR_REPEAT);
 
-        asset_t<shader_t> pp_shader = smol::load_asset_sync<shader_t>("game://assets/shaders/post_process.slang");
-
-        asset_t<material_t> pp_material = smol::load_asset_sync<material_t>("pp_material", pp_shader);
-        graphics_state.add_material("PostProcessing"_h, pp_material);
-
-        renderer::register_renderer_feature(
-            [](renderer::rendergraph_t& graph, ecs::registry_t& reg)
-            {
-                renderer::rg_resource_id scene_color = graph.get_resource("SceneColor"_h);
-                renderer::rg_resource_id scene_depth = graph.get_resource("SceneDepth"_h);
-
-                renderer::rg_resource_id final_target = graph.get_resource("FinalOutput"_h);
-
-                renderer::add_mesh_pass(graph, "MainForward"_h, "MainForwardPass", "MainForwardPass", {}, {scene_color},
-                                        scene_depth);
-
-                graphics_state_t& graphics_state = reg.ctx().get<graphics_state_t>();
-                material_t* pp_mat = graphics_state.get_material_raw("PostProcessing"_h);
-
-                if (pp_mat && pp_mat->shader && pp_mat->shader->ready())
-                {
-                    renderer::add_fullscreen_pass(
-                        graph, "PostProcess"_h, "PostProcess", pp_mat, {scene_color}, {final_target},
-                        [](renderer::rendergraph_t& g, material_t& mat)
-                        {
-                            u32_t color_id = g.get_bindless_id(g.get_resource("SceneColor"_h));
-                            mat.set_property("scene_color_tex"_h, color_id);
-                        });
-                }
-            });
-
-        color_t colors[5] = {
-            {1.0f, 1.0f, 1.0f, 1.0f},
-            {1.0f, 0.2f, 0.2f, 1.0f},
-            {0.2f, 1.0f, 0.2f, 1.0f},
-            {0.2f, 0.2f, 1.0f, 1.0f},
-            {1.0f, 1.0f, 0.2f, 1.0f}
-        };
-
-        asset_t<shader_t> unlit_shader = smol::load_asset_sync<shader_t>("game://assets/shaders/unlit.slang");
-
-        for (int i = 0; i < 5; i++)
-        {
-            std::string mat_name = "croissant_mat_" + std::to_string(i);
-            asset_t<material_t> mat = smol::load_asset_sync<material_t>(mat_name.c_str(), unlit_shader);
-
-            mat->set_property<color_t>("color"_h, colors[i]);
-            mat->set_texture("albedo_tex"_h, i % 2 == 0 ? croissant_tex : rock_tex);
-            mat->set_sampler("albedo_sampler"_h, sampler_type_e::LINEAR_REPEAT);
-
-            graphics_state.add_material(smol::hash_string(mat_name.c_str()), mat);
-        }
-
-        asset_t<shader_t> lit_shader = smol::load_asset_sync<shader_t>("game://assets/shaders/simple_lit.slang");
-        asset_t<material_t> lit_mat = smol::load_asset_sync<material_t>("lit_mat0", lit_shader);
-        if (lit_mat)
-        {
-            lit_mat->set_property<color_t>("color"_h, {1.0f, 1.0f, 1.0f, 1.0f});
-            lit_mat->set_texture("albedo_tex"_h, rock_tex);
-            lit_mat->set_sampler("albedo_sampler"_h, sampler_type_e::LINEAR_REPEAT);
-            lit_mat->set_property<float>("smoothness"_h, 32.0f);
-            graphics_state.add_material(smol::hash_string("lit_mat0"), lit_mat);
-        }
-
-        asset_t<shader_t> cutout_shader =
-            smol::load_asset_sync<shader_t>("game://assets/shaders/cutout_lit.smolshader");
-        if (cutout_shader)
-        {
-            asset_t<material_t> cutout_mat = smol::load_asset_sync<material_t>("cutout_mat", cutout_shader);
-            if (cutout_mat)
-            {
-                cutout_mat->set_property<color_t>("color"_h, {1.0f, 1.0f, 1.0f, 1.0f});
-                cutout_mat->set_property<f32>("alpha_cutoff"_h, 0.5f);
-                cutout_mat->set_property<f32>("smoothness"_h, 32.0f);
-                cutout_mat->set_texture("albedo_tex"_h, cutout_test_tex);
-                cutout_mat->set_sampler("albedo_sampler"_h, sampler_type_e::NEAREST_REPEAT);
-                graphics_state.add_material("cutout_mat"_h, cutout_mat);
-            }
-        }
-
-        asset_t<shader_t> glass_shader =
-            smol::load_asset_sync<shader_t>("game://assets/shaders/transparent_alpha.smolshader");
-        if (glass_shader)
-        {
-            asset_t<material_t> glass_mat = smol::load_asset_sync<material_t>("glass_mat", glass_shader);
-            if (glass_mat)
-            {
-                glass_mat->set_property<color_t>("color"_h, {0.4f, 0.8f, 1.0f, 0.2f});
-                glass_mat->set_property<f32>("smoothness"_h, 32.0f);
-                graphics_state.add_material(smol::hash_string("glass_mat"), glass_mat);
-            }
-        }
-
-        game_state_t& game_state = world->registry.ctx().emplace<game_state_t>();
-        game_state.scenes.push_back(load_scene_base_draw);
-        game_state.scenes.push_back(load_scene_blinn_phong);
-        game_state.scenes.push_back(load_scene_transparency);
-
-        game_state.scenes[0](world);
+        graphics_state.add_material(smol::hash_string(mat_name.c_str()), mat);
     }
 
-    SMOL_API void smol_game_update(smol::world_t* world)
+    asset_t<shader_t> lit_shader = smol::load_asset_sync<shader_t>("game://assets/shaders/simple_lit.slang");
+    asset_t<material_t> lit_mat = smol::load_asset_sync<material_t>("lit_mat0", lit_shader);
+    if (lit_mat)
     {
-        ecs::registry_t& reg = world->registry;
-        game_state_t& game_state = world->registry.ctx().get<game_state_t>();
+        lit_mat->set_property<color_t>("color"_h, {1.0f, 1.0f, 1.0f, 1.0f});
+        lit_mat->set_texture("albedo_tex"_h, rock_tex);
+        lit_mat->set_sampler("albedo_sampler"_h, sampler_type_e::LINEAR_REPEAT);
+        lit_mat->set_property<float>("smoothness"_h, 32.0f);
+        graphics_state.add_material(smol::hash_string("lit_mat0"), lit_mat);
+    }
 
-        if (smol::input::get_key_down(input::key_t::Space))
+    asset_t<shader_t> cutout_shader = smol::load_asset_sync<shader_t>("game://assets/shaders/cutout_lit.smolshader");
+    if (cutout_shader)
+    {
+        asset_t<material_t> cutout_mat = smol::load_asset_sync<material_t>("cutout_mat", cutout_shader);
+        if (cutout_mat)
         {
-            game_state.current_scene_index = (game_state.current_scene_index + 1) % game_state.scenes.size();
-            SMOL_LOG_INFO("GAME", "Switching to scene index: {}", game_state.current_scene_index);
-
-            game_state.scenes[game_state.current_scene_index](world);
-        }
-
-        vec3_t rot = {0.8f * (f32)time::get_time(), 0.7f * (f32)time::get_time(), 0.9f * (f32)time::get_time()};
-        for (auto [entity, rotator, transform] : reg.view<rotator_t, transform_t>().each())
-        {
-            transform.local_rotation = quat_t::from_euler(rot);
-            transform.is_dirty = true;
-        }
-
-        vec3_t scale = {2.0f * std::cos((f32)time::get_time()), 1.0f, 2.0f * std::cos((f32)time::get_time())};
-        for (auto [entity, rotator, transform] : reg.view<scaler_t, transform_t>().each())
-        {
-            transform.local_scale = scale;
-            transform.is_dirty = true;
+            cutout_mat->set_property<color_t>("color"_h, {1.0f, 1.0f, 1.0f, 1.0f});
+            cutout_mat->set_property<f32>("alpha_cutoff"_h, 0.5f);
+            cutout_mat->set_property<f32>("smoothness"_h, 32.0f);
+            cutout_mat->set_texture("albedo_tex"_h, cutout_test_tex);
+            cutout_mat->set_sampler("albedo_sampler"_h, sampler_type_e::NEAREST_REPEAT);
+            graphics_state.add_material("cutout_mat"_h, cutout_mat);
         }
     }
 
-    SMOL_API void smol_game_shutdown(smol::world_t* world) {}
+    asset_t<shader_t> glass_shader =
+        smol::load_asset_sync<shader_t>("game://assets/shaders/transparent_alpha.smolshader");
+    if (glass_shader)
+    {
+        asset_t<material_t> glass_mat = smol::load_asset_sync<material_t>("glass_mat", glass_shader);
+        if (glass_mat)
+        {
+            glass_mat->set_property<color_t>("color"_h, {0.4f, 0.8f, 1.0f, 0.2f});
+            glass_mat->set_property<f32>("smoothness"_h, 32.0f);
+            graphics_state.add_material(smol::hash_string("glass_mat"), glass_mat);
+        }
+    }
+
+    game_state_t& game_state = world->registry.ctx().emplace<game_state_t>();
+    game_state.scenes.push_back(load_scene_base_draw);
+    game_state.scenes.push_back(load_scene_blinn_phong);
+    game_state.scenes.push_back(load_scene_transparency);
+
+    game_state.scenes[0](world);
 }
+
+void smol_game_update(smol::world_t* world)
+{
+    ecs::registry_t& reg = world->registry;
+    game_state_t& game_state = world->registry.ctx().get<game_state_t>();
+
+    if (smol::input::get_key_down(input::key_t::Space))
+    {
+        game_state.current_scene_index = (game_state.current_scene_index + 1) % game_state.scenes.size();
+        SMOL_LOG_INFO("GAME", "Switching to scene index: {}", game_state.current_scene_index);
+
+        game_state.scenes[game_state.current_scene_index](world);
+    }
+
+    vec3_t rot = {0.8f * (f32)time::get_time(), 0.7f * (f32)time::get_time(), 0.9f * (f32)time::get_time()};
+    for (auto [entity, rotator, transform] : reg.view<rotator_t, transform_t>().each())
+    {
+        transform.local_rotation = quat_t::from_euler(rot);
+        transform.is_dirty = true;
+    }
+
+    vec3_t scale = {2.0f * std::cos((f32)time::get_time()), 1.0f, 2.0f * std::cos((f32)time::get_time())};
+    for (auto [entity, rotator, transform] : reg.view<scaler_t, transform_t>().each())
+    {
+        transform.local_scale = scale;
+        transform.is_dirty = true;
+    }
+}
+
+void smol_game_shutdown(smol::world_t* world) {}
+
+SMOL_GAME_ENTRY()
