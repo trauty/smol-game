@@ -1,0 +1,14 @@
+{
+    "shader": "game://assets/shaders/cutout_lit.smolshader",
+    "textures": {
+        "albedo_tex": "game://assets/textures/cutout_test.png"
+    },
+    "samplers": {
+        "albedo_sampler": 2
+    },
+    "properties": {
+        "color": [1.0, 1.0, 1.0, 1.0],
+        "alpha_cutoff": 0.5,
+        "smoothness": 32.0
+    }
+}

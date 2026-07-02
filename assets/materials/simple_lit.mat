@@ -1,0 +1,13 @@
+{
+    "shader": "game://assets/shaders/simple_lit.slang",
+    "textures": {
+        "albedo_tex": "game://assets/textures/rock_albedo.png"
+    },
+    "samplers": {
+        "albedo_sampler": 0
+    },
+    "properties": {
+        "color": [1.0, 1.0, 1.0, 1.0],
+        "smoothness": 32.0
+    }
+}
