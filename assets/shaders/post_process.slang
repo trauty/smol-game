@@ -1,6 +1,6 @@
 import smol_globals;
 
-[ShaderConfig("PostProcess", "Opaque", false, false)]
+[ShaderConfig("PostProcess", "Opaque", false, false, false)]
 struct PostProcessShader
 {
     uint scene_color_tex;

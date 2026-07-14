@@ -2,7 +2,7 @@ import smol_globals;
 import util;
 import lighting;
 
-[ShaderConfig("MainForwardPass", "Cutout", true, true)]
+[ShaderConfig("MainForwardPass", "Cutout", true, true, true)]
 struct CutoutLitShader
 {
     float4 color;

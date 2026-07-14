@@ -1,6 +1,6 @@
 import smol_globals;
 
-[ShaderConfig("MainForwardPass", "Opaque", true, true)]
+[ShaderConfig("MainForwardPass", "Opaque", true, true, true)]
 struct UnlitShader
 {
     float4 color;

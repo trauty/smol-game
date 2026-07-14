@@ -1,0 +1,7 @@
+{
+    "shader": "game://assets/shaders/simple_lit.slang",
+    "properties": {
+        "color": [0.8, 0.8, 0.8, 0.8],
+        "smoothness": 16.0
+    }
+}

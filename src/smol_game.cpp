@@ -67,12 +67,7 @@ void smol_game_init(smol::world_t* world)
         [](renderer::rendergraph_t& graph, ecs::registry_t& reg)
         {
             renderer::rg_resource_id scene_color = graph.get_resource("SceneColor"_h);
-            renderer::rg_resource_id scene_depth = graph.get_resource("SceneDepth"_h);
-
             renderer::rg_resource_id final_target = graph.get_resource("FinalOutput"_h);
-
-            renderer::add_mesh_pass(graph, "MainForward"_h, "MainForwardPass", "MainForwardPass", {}, {scene_color},
-                                    scene_depth);
 
             graphics_state_t& graphics_state = reg.ctx().get<graphics_state_t>();
             material_t* pp_mat = graphics_state.get_material_raw("PostProcessing"_h);

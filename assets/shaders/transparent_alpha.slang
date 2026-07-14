@@ -1,7 +1,7 @@
 import smol_globals;
 import lighting;
 
-[ShaderConfig("MainForwardPass", "TransparentAlpha", false, true)]
+[ShaderConfig("MainForwardPass", "TransparentAlpha", false, true, false)]
 struct TransparentAlphaShader
 {
     float4 color;

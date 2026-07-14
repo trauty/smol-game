@@ -1,7 +1,7 @@
 import smol_globals;
 import lighting;
 
-[ShaderConfig("MainForwardPass", "Opaque", true, true)]
+[ShaderConfig("MainForwardPass", "Opaque", true, true, true)]
 struct SimpleLitShader
 {
     float4 color;
