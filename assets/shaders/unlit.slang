@@ -6,6 +6,8 @@ struct UnlitShader
     float4 color;
     uint albedo_tex;
     uint albedo_sampler;
+
+    property Texture albedo { get { return {albedo_tex, albedo_sampler}; } }
 };
 
 [RenderTargetsConfig]
@@ -26,7 +28,7 @@ FragmentOut fragmentMain(VertexOut in)
     ObjectData obj = getObjectData(in.draw_id);
     UnlitShader mat = getMaterial<UnlitShader>(obj.material_offset);
 
-    float4 color = getTexture(mat.albedo_tex).Sample(getSampler(mat.albedo_sampler), in.uv) * mat.color;
+    float4 color = mat.albedo.sample(in.uv) * mat.color;
 
     FragmentOut out;
     out.color = color;

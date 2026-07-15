@@ -10,6 +10,8 @@ struct CutoutLitShader
     uint albedo_sampler;
     float smoothness;
     float alpha_cutoff;
+
+    property Texture albedo { get { return {albedo_tex, albedo_sampler}; } }
 };
 
 [RenderTargetsConfig]
@@ -31,7 +33,7 @@ FragmentOut fragmentMain(VertexOut in)
     CutoutLitShader mat = getMaterial<CutoutLitShader>(obj.material_offset);
 
     float4 tex_color =
-        sampleTriplanar(getTexture(mat.albedo_tex), getSampler(mat.albedo_sampler), in.world_pos, in.normal, 10.0f);
+        sampleTriplanar(mat.albedo.tex2d(), mat.albedo.samplerState(), in.world_pos, in.normal, 10.0f);
     float4 base_color = tex_color * mat.color;
 
     if (base_color.a < mat.alpha_cutoff) { discard; }

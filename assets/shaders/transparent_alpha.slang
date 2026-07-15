@@ -8,6 +8,8 @@ struct TransparentAlphaShader
     uint albedo_tex;
     uint albedo_sampler;
     float smoothness;
+
+    property Texture albedo { get { return {albedo_tex, albedo_sampler}; } }
 };
 
 [RenderTargetsConfig]
@@ -29,7 +31,7 @@ FragmentOut fragmentMain(VertexOut in)
 
     TransparentAlphaShader mat = getMaterial<TransparentAlphaShader>(obj.material_offset);
 
-    float4 base_color = getTexture(mat.albedo_tex).Sample(getSampler(mat.albedo_sampler), in.uv) * mat.color;
+    float4 base_color = mat.albedo.sample(in.uv) * mat.color;
 
     Surface surface;
     surface.albedo = base_color.rgb;

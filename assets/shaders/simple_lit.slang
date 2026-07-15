@@ -8,6 +8,8 @@ struct SimpleLitShader
     uint albedo_tex;
     uint albedo_sampler;
     float smoothness;
+
+    property Texture albedo { get { return {albedo_tex, albedo_sampler}; } }
 };
 
 [RenderTargetsConfig]
@@ -30,7 +32,7 @@ FragmentOut fragmentMain(VertexOut in)
     SimpleLitShader mat = getMaterial<SimpleLitShader>(obj.material_offset);
 
     Surface surface;
-    surface.albedo = getTexture(mat.albedo_tex).Sample(getSampler(mat.albedo_sampler), in.uv).rgb * mat.color.rgb;
+    surface.albedo = mat.albedo.sample(in.uv).rgb * mat.color.rgb;
     surface.normal = normalize(in.normal);
     surface.view_dir = normalize(globals.camera_pos.xyz - in.world_pos);
     surface.smoothness = mat.smoothness;
