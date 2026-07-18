@@ -7,4 +7,5 @@ compile_commands.json
 .smol/
 bin/
 imgui.ini
-debug.keystore
+smol-engine/
+dist/

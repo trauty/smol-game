@@ -1,7 +1,13 @@
 {
     "project_name": "smol-game",
     "version": "0.0.1",
+    "smolproject_version": "1",
+    "engine": {
+        "version": "0.1.0",
+        "path": "smol-engine"
+    },
     "game_lib_name": "smol-game",
+    "startup_scene": "scenes/test.scene",
     "paths": {
         "bin_dir": "bin",
         "assets_dir": "assets",

@@ -15,7 +15,6 @@
 #include "smol/log.h"
 #include "smol/math.h"
 #include "smol/reflection.h"
-#include "smol/rendering/graphics_state.h"
 #include "smol/rendering/renderer.h"
 #include "smol/rendering/rendergraph.h"
 #include "smol/time.h"
@@ -54,35 +53,6 @@ void smol_game_init(smol::world_t* world)
         .func<&smol::reflection::remove_component<scaler_t>>("remove"_h)
         .data<&scaler_t::test>("test"_h)
         .custom<smol::reflection::editor_prop_t>("Test Value");
-
-    graphics_state_t& graphics_state = world->registry.ctx().emplace<graphics_state_t>();
-
-    asset_handle_t pp_shader =
-        smol::engine::get_asset_registry().load_sync<shader_t>("game://assets/shaders/post_process.slang");
-
-    asset_handle_t pp_material = smol::engine::get_asset_registry().load_sync<material_t>("pp_material", pp_shader);
-    graphics_state.add_material("PostProcessing"_h, pp_material);
-
-    renderer::register_renderer_feature(
-        [](renderer::rendergraph_t& graph, ecs::registry_t& reg)
-        {
-            renderer::rg_resource_id scene_color = graph.get_resource("SceneColor"_h);
-            renderer::rg_resource_id final_target = graph.get_resource("FinalOutput"_h);
-
-            graphics_state_t& graphics_state = reg.ctx().get<graphics_state_t>();
-            material_t* pp_mat = graphics_state.get_material_raw("PostProcessing"_h);
-
-            if (pp_mat && pp_mat->shader_handle.is_valid())
-            {
-                renderer::add_fullscreen_pass(graph, "PostProcess"_h, "PostProcess", pp_mat, {scene_color},
-                                              {final_target},
-                                              [](renderer::rendergraph_t& g, material_t& mat)
-                                              {
-                                                  u32_t color_id = g.get_bindless_id(g.get_resource("SceneColor"_h));
-                                                  mat.set_property("scene_color_tex"_h, color_id);
-                                              });
-            }
-        });
 }
 
 void smol_game_update(smol::world_t* world)

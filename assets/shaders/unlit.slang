@@ -7,7 +7,12 @@ struct UnlitShader
     uint albedo_tex;
     uint albedo_sampler;
 
-    property Texture albedo { get { return {albedo_tex, albedo_sampler}; } }
+    property Texture albedo
+    {
+        get {
+            return { albedo_tex, albedo_sampler };
+        }
+    }
 };
 
 [RenderTargetsConfig]

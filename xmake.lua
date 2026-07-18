@@ -3,106 +3,43 @@ set_version("0.0.1")
 
 set_config("game_name", "smol-game")
 
-if is_plat("linux") then 
-    set_toolchains("clang")
-    add_cxflags("-fno-rtti", {force = true})
-elseif is_plat("windows") then
-    set_toolchains("clang-cl")
-    set_toolset("ld", "lld-link")
-    set_toolset("sh", "lld-link")
-    set_toolset("ar", "llvm-ar")
-
-    add_cxflags("/GR-", {force = true})
-    set_runtimes("MD")
-end
-
-set_languages("cxx20")
-add_rules("mode.debug", "mode.release", "mode.releasedbg")
 add_rules("plugin.compile_commands.autoupdate", {outputdir = "."})
 
-includes("smol-engine")
+local function smol_engine_dir()
+    local env = os.getenv("SMOL_ENGINE_DIR")
+    if env and os.isdir(env) then return env end
 
-local is_standalone = has_config("standalone")
+    local sub = path.join(os.scriptdir(), "smol-engine")
+    if os.isdir(sub) then return sub end
+
+    local sibling = path.join(os.scriptdir(), "..", "smol-engine")
+    if os.isdir(sibling) then return sibling end
+
+    local home = os.getenv("HOME") or os.getenv("USERPROFILE")
+    if home then
+        local installed = os.dirs(path.join(home, ".smol", "engines", "*"))
+        if #installed > 0 then
+            table.sort(installed)
+            return installed[#installed]
+        end
+    end
+
+    return path.join(os.scriptdir(), "NO_SMOL_ENGINE__set_SMOL_ENGINE_DIR_or_vendor_smol-engine")
+end
+
+local SMOL_ENGINE = smol_engine_dir()
+set_config("smol_engine_dir", SMOL_ENGINE)
+if os.isfile(path.join(SMOL_ENGINE, "xmake.lua")) then
+    includes(SMOL_ENGINE)
+else
+    includes(path.join(SMOL_ENGINE, "share", "smol", "rules", "*.lua"))
+    includes(path.join(SMOL_ENGINE, "share", "smol", "tasks", "*.lua"))
+    add_moduledirs(path.join(SMOL_ENGINE, "share", "smol", "modules"))
+end
 
 target("smol-game")
-    if is_standalone then
-        set_kind("static")
-        if is_plat("android") then
-            add_cxflags("-fPIC", {force = true})
-        end
-    else
-        set_kind("shared")
-        if is_plat("linux") then 
-            add_shflags("-Wl,-Bsymbolic")
-        end
-    end
-    
-    set_basename(get_config("game_lib_name"))
-    
-    if is_arch("x86_64", "x64") then
-        add_cxflags("-march=x86-64-v3")
-    end
-
-    set_targetdir("bin")
-
-    if is_mode("debug") then
-        if not is_plat("android") then
-            set_policy("build.sanitizer.address", true)
-        end
-
-        if is_plat("windows") then
-            add_defines("_DISABLE_STRING_ANNOTATION", "_DISABLE_VECTOR_ANNOTATION", {public = true})
-        end
-    end
-
-    add_defines("SMOL_EXPORT")
-
-    if is_mode("release") then
-        set_optimize("fastest")
-        set_strip("all")
-    end
-    
-    add_deps("smol-interface")
-    add_deps("smol-engine")
+    add_rules("smol.game", "smol.hotreload")
 
     add_files("src/**.cpp")
     add_includedirs("src")
-
-    if not is_plat("android") then
-        add_deps("smol-cooker", {inherit = false})
-        after_build(function (target)
-            local dest_dir = target:targetdir()
-            local cooker_bin = target:dep("smol-cooker"):targetfile()
-
-            local engine_assets = path.join(os.scriptdir(), "smol-engine/assets")
-            local game_assets = "assets"
-
-            local engine_out = ".smol/engine"
-            local game_out = ".smol/game"
-
-            print("Cooking engine assets...")
-            os.execv(cooker_bin, {
-                "-i", engine_assets,
-                "-o", engine_out
-            })
-
-            print("Cooking game assets...")
-            os.execv(cooker_bin, {
-                "-i", game_assets,
-                "-I", engine_assets,
-                "-o", game_out
-            })
-
-            local target_assets = path.join(target:dep("smol-cooker"):targetdir(), "assets")
-            os.mkdir(target_assets)
-
-            os.cp(engine_out, target_assets)
-            os.cp(game_out, target_assets)
-
-            print("Cooked assets and copied folder to build dir: " .. target_assets)
-
-            local trigger_file = target:targetfile() .. ".trigger"
-            io.writefile(trigger_file, os.date("%Y-%m-%d %H:%M:%S"))
-        end)
-    end
 target_end()
